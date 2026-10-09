@@ -1,0 +1,67 @@
+/* QuestHive design tokens — warm cream base with soft pastel sage accents */
+:root {
+  /* Surfaces */
+  --bg: #FBF8F3;
+  --surface: #FFFFFF;
+  --surface-alt: #F4EFE6;
+  --border: #E8E1D6;
+  --divider: #EFE9DF;
+
+  /* Text */
+  --text: #2B2A28;
+  --text-muted: #7A756C;
+  --text-faint: #A39D92;
+
+  /* Accent — pastel sage. Use deep for text/buttons on cream; base/tint for fills. */
+  --accent-tint: #E3EDE4;
+  --accent-base: #A8C3A8;
+  --accent-deep: #5E7F62;
+  --accent-hover: #4E6E52;
+  --accent-ink: #3F5A43;
+
+  /* Secondary pastel — used sparingly */
+  --peach-tint: #FBE7DA;
+  --peach-ink: #9A5B3C;
+
+  /* Status */
+  --success: #5E8F6B;
+  --success-tint: #E4F0E7;
+  --error: #B5574F;
+  --error-tint: #F8E3E0;
+  --warning: #A8792E;
+  --warning-tint: #F8EEDB;
+  --star: #E9B44C;
+  --rose: #E07A7A;
+
+  /* Type */
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --fs-xs: 0.78rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 0.97rem;
+  --fs-md: 1.1rem;
+  --fs-lg: 1.35rem;
+  --fs-xl: 1.75rem;
+  --fs-2xl: clamp(1.9rem, 3.2vw, 2.5rem);
+  --fs-hero: clamp(2.6rem, 6vw, 4.4rem);
+
+  /* Shape */
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  /* Elevation — soft and warm */
+  --shadow-sm: 0 1px 2px rgba(60, 45, 20, 0.04);
+  --shadow: 0 1px 2px rgba(60, 45, 20, 0.04), 0 6px 20px rgba(60, 45, 20, 0.06);
+  --shadow-lg: 0 2px 4px rgba(60, 45, 20, 0.05), 0 14px 36px rgba(60, 45, 20, 0.10);
+
+  /* Spacing (8px scale) */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px; --s9: 96px;
+
+  --nav-h: 68px;
+  --container: 1240px;
+  --ease: cubic-bezier(.2, .7, .3, 1);
+  --t-fast: 150ms;
+  --t: 200ms;
+}

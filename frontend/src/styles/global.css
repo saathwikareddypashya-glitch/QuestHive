@@ -1,0 +1,51 @@
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
+
+body {
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5 { color: var(--text); font-weight: 650; letter-spacing: -0.015em; line-height: 1.25; margin: 0; }
+p { margin: 0 0 var(--s3); }
+a { color: var(--accent-deep); text-decoration: none; transition: color var(--t-fast); }
+a:hover { color: var(--accent-hover); }
+img { max-width: 100%; display: block; }
+button { font: inherit; color: inherit; }
+::selection { background: var(--accent-tint); color: var(--accent-ink); }
+
+:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; border-radius: 4px; }
+
+.container-qh { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 var(--s5); }
+.container-qh.narrow { max-width: 1080px; }
+@media (max-width: 576px) { .container-qh { padding: 0 var(--s4); } }
+
+.text-muted-qh { color: var(--text-muted) !important; }
+.text-accent { color: var(--accent-deep); }
+.small { font-size: var(--fs-sm); }
+
+.h-hero { font-size: var(--fs-hero); font-weight: 750; letter-spacing: -0.04em; line-height: 1.02; }
+.h-page-lg { font-size: var(--fs-2xl); font-weight: 700; letter-spacing: -0.03em; margin-bottom: var(--s2); }
+.h-page { font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.025em; margin-bottom: var(--s1); }
+.h-section-lg { font-size: clamp(1.5rem, 2.4vw, 1.9rem); font-weight: 700; letter-spacing: -0.025em; margin-bottom: var(--s1); }
+.h-section { font-size: var(--fs-md); font-weight: 650; margin-bottom: var(--s3); display: flex; align-items: center; gap: var(--s2); }
+.h-section svg { color: var(--accent-deep); }
+
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.skip-link { position: absolute; left: -9999px; top: 8px; z-index: 2000; background: var(--accent-deep); color: #fff; padding: 8px 14px; border-radius: var(--r-md); }
+.skip-link:focus { left: 8px; color: #fff; }
+
+.page-fade { animation: pageIn 260ms var(--ease) both; }
+@keyframes pageIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

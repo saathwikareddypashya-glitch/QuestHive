@@ -1,0 +1,18 @@
+# Dependencies & builds
+node_modules/
+dist/
+target/
+
+# Local data & secrets (never upload these)
+backend/data/
+backend/secrets.properties
+.env.local
+.env.*.local
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+bin/
