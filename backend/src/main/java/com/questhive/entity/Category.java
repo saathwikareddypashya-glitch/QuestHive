@@ -18,6 +18,7 @@ public class Category {
     private String description;
 
     @ElementCollection
+    @OrderColumn(name = "list_index")
     @CollectionTable(name = "category_subjects", joinColumns = @JoinColumn(name = "category_id"))
     @Column(name = "subject_name")
     @Fetch(FetchMode.SUBSELECT)

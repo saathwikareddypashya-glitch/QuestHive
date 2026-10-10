@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal, SearchX, X } from 'lucide-react';
 import SearchBar from '../../components/search/SearchBar';
-import FilterPanel, { activeFilterCount, defaultFilters, PRICE_CAP, type Filters } from '../../components/search/FilterPanel';
+import FilterPanel, { activeFilterCount, defaultFilters, PRICE_CAP, type Filters, type SubjectGroup } from '../../components/search/FilterPanel';
 import FilterDrawer from '../../components/search/FilterDrawer';
 import TeacherGrid from '../../components/teacher/TeacherGrid';
 import EmptyState from '../../components/common/EmptyState';
@@ -11,7 +11,7 @@ import { teacherService } from '../../api/teacherService';
 import { useAsync } from '../../hooks/useAsync';
 import { useCategories } from '../../hooks/useCategories';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { filterTeachers, SORTS, type SortKey } from '../../utils/filterTeachers';
+import { filterTeachers, SORTS, teachesSubject, type SortKey } from '../../utils/filterTeachers';
 import { formatINR } from '../../utils/formatters';
 
 export default function Explore() {
@@ -40,7 +40,16 @@ export default function Explore() {
     [teachers, categories, liveQ, filters, sort],
   );
 
-  const subjects = useMemo(() => Array.from(new Set((teachers ?? []).map((t) => t.subject))).sort(), [teachers]);
+  // Every subject from every category (or just the selected category), with teacher counts.
+  const subjectGroups = useMemo<SubjectGroup[]>(
+    () => (categories ?? [])
+      .filter((c) => !filters.category || c.id === filters.category)
+      .map((c) => ({
+        label: c.shortName,
+        subjects: c.subjects.map((name) => ({ name, count: (teachers ?? []).filter((t) => teachesSubject(t, name)).length })),
+      })),
+    [categories, teachers, filters.category],
+  );
   const count = activeFilterCount(filters);
 
   const updateParam = (key: string, value: string) => {
@@ -74,7 +83,7 @@ export default function Explore() {
     ...(filters.verifiedOnly ? [{ label: 'Verified only', clear: () => setFilters({ ...filters, verifiedOnly: false }) }] : []),
   ];
 
-  const panel = <FilterPanel filters={filters} onChange={changeFilters} subjects={subjects} categories={categories ?? []} />;
+  const panel = <FilterPanel filters={filters} onChange={changeFilters} subjectGroups={subjectGroups} categories={categories ?? []} />;
 
   return (
     <div className="page-fade">
@@ -128,9 +137,14 @@ export default function Explore() {
           ) : results && results.length === 0 ? (
             <EmptyState
               icon={SearchX}
-              title="We couldn't find anyone matching that."
-              text="Try a broader search or remove a filter or two."
-              action={<button className="btn btn-primary" onClick={clearAll}>Clear filters</button>}
+              title={filters.subject && activeFilterCount(filters) === 1 && !liveQ ? `No ${filters.subject} teachers yet.` : "We couldn't find anyone matching that."}
+              text={filters.subject && activeFilterCount(filters) === 1 && !liveQ
+                ? 'New teachers join every week. Know this subject well? Apply to teach it.'
+                : 'Try a broader search or remove a filter or two.'}
+              action={<div className="d-flex gap-2 justify-content-center flex-wrap">
+                <button className="btn btn-primary" onClick={clearAll}>Clear filters</button>
+                <a className="btn btn-secondary" href="/become-a-teacher">Become a teacher</a>
+              </div>}
             />
           ) : (
             <TeacherGrid teachers={results} loading={loading || !results} cols={3} skeletonCount={6} />

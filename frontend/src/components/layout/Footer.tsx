@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RotateCcw } from 'lucide-react';
 import Logo from '../common/Logo';
@@ -8,13 +9,19 @@ import { useBooking } from '../../context/BookingContext';
 export default function Footer() {
   const { toast } = useToast();
   const { clearDraft } = useBooking();
+  const [busy, setBusy] = useState(false);
   const reset = async () => {
+    if (busy) return;
+    setBusy(true);
+    toast('Resetting demo data… this can take up to a minute.', 'info');
     try {
       await adminService.resetDemo();
       clearDraft();
       toast('Demo data reset to its original state.', 'info');
     } catch (e) {
       toast((e as Error).message, 'error');
+    } finally {
+      setBusy(false);
     }
   };
   return (
@@ -48,7 +55,7 @@ export default function Footer() {
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} QuestHive. Frontend demo — all data is simulated.</span>
-          <button className="link-btn" onClick={reset}><RotateCcw size={14} /> Reset demo data</button>
+          <button className="link-btn" onClick={reset} disabled={busy}><RotateCcw size={14} className={busy ? 'spin' : ''} /> {busy ? 'Resetting…' : 'Reset demo data'}</button>
         </div>
       </div>
     </footer>

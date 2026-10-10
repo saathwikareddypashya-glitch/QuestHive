@@ -38,18 +38,21 @@ public class Teacher {
     private int experienceYears;
 
     @ElementCollection
+    @OrderColumn(name = "list_index")
     @CollectionTable(name = "teacher_qualifications", joinColumns = @JoinColumn(name = "teacher_id"))
     @Column(name = "qualification", length = 500)
     @Fetch(FetchMode.SUBSELECT)
     private List<String> qualifications = new ArrayList<>();
 
     @ElementCollection
+    @OrderColumn(name = "list_index")
     @CollectionTable(name = "teacher_skills", joinColumns = @JoinColumn(name = "teacher_id"))
     @Column(name = "skill")
     @Fetch(FetchMode.SUBSELECT)
     private List<String> skills = new ArrayList<>();
 
     @ElementCollection
+    @OrderColumn(name = "list_index")
     @CollectionTable(name = "teacher_languages", joinColumns = @JoinColumn(name = "teacher_id"))
     @Column(name = "language")
     @Fetch(FetchMode.SUBSELECT)
@@ -65,6 +68,7 @@ public class Teacher {
     private int completedClasses;
 
     @ElementCollection
+    @OrderColumn(name = "list_index")
     @CollectionTable(name = "teacher_availability", joinColumns = @JoinColumn(name = "teacher_id"))
     @Fetch(FetchMode.SUBSELECT)
     private List<AvailabilityRange> availability = new ArrayList<>();

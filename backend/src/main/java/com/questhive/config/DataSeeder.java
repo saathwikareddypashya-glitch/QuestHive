@@ -2,6 +2,7 @@ package com.questhive.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.questhive.entity.*;
+import com.questhive.exception.ApiException;
 import com.questhive.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,8 +10,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +27,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -42,6 +49,19 @@ public class DataSeeder implements CommandLineRunner {
     private final CategoryRepository categories;
     private final ObjectMapper mapper;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbc;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    /** Prevents two resets running at the same time (e.g. a double click). */
+    private final AtomicBoolean resetting = new AtomicBoolean(false);
+
+    /** Child tables first, so nothing points at a deleted row. */
+    private static final List<String> TABLES = List.of(
+            "teacher_qualifications", "teacher_skills", "teacher_languages", "teacher_availability",
+            "category_subjects", "notifications", "reviews", "payments", "bookings",
+            "learners", "teachers", "categories");
 
     @Value("${app.demo.password:demo1234}")
     private String demoPassword;
@@ -85,18 +105,24 @@ public class DataSeeder implements CommandLineRunner {
         seed();
     }
 
+    /**
+     * Restores the original demo data. Deletes every table with one SQL statement each, then
+     * inserts the seed data in JDBC batches, so it is quick even on a remote cloud database.
+     */
     @Transactional
     public void reset() throws Exception {
-        notifications.deleteAllInBatch();
-        reviews.deleteAllInBatch();
-        payments.deleteAllInBatch();
-        bookings.deleteAllInBatch();
-        learners.deleteAllInBatch();
-        teachers.deleteAll();     // also clears the element-collection tables
-        categories.deleteAll();
-        teachers.flush();
-        categories.flush();
-        seed();
+        if (!resetting.compareAndSet(false, true))
+            throw new ApiException(HttpStatus.CONFLICT, "A reset is already running. Wait a minute, then refresh the page.");
+        try {
+            long start = System.currentTimeMillis();
+            em.flush();
+            em.clear();
+            for (String table : TABLES) jdbc.update("DELETE FROM " + table);
+            seed();
+            log.info("Demo data reset in {} ms.", System.currentTimeMillis() - start);
+        } finally {
+            resetting.set(false);
+        }
     }
 
     private void seed() throws Exception {
@@ -125,15 +151,29 @@ public class DataSeeder implements CommandLineRunner {
         data.getTeachers().forEach(t -> t.setPasswordHash(hash));
         data.getLearners().forEach(l -> l.setPasswordHash(hash));
 
-        categories.saveAll(data.getCategories());
-        teachers.saveAll(data.getTeachers());
-        learners.saveAll(data.getLearners());
-        bookings.saveAll(data.getBookings());
-        payments.saveAll(data.getPayments());
-        reviews.saveAll(data.getReviews());
-        notifications.saveAll(data.getNotifications());
+        persistAll(data.getCategories());
+        persistAll(data.getTeachers());
+        persistAll(data.getLearners());
+        persistAll(data.getBookings());
+        persistAll(data.getPayments());
+        persistAll(data.getReviews());
+        persistAll(data.getNotifications());
         log.info("Seeded QuestHive demo data: {} teachers, {} learners, {} bookings (dates shifted {} days).",
                 data.getTeachers().size(), data.getLearners().size(), data.getBookings().size(), shift);
+    }
+
+    /** Inserts new rows directly (no SELECT first) and flushes in batches of 50. */
+    private void persistAll(List<?> items) {
+        int i = 0;
+        for (Object item : items) {
+            em.persist(item);
+            if (++i % 50 == 0) {
+                em.flush();
+                em.clear();
+            }
+        }
+        em.flush();
+        em.clear();
     }
 
     /**
@@ -170,7 +210,8 @@ public class DataSeeder implements CommandLineRunner {
         if (v != null && v.contains("T")) set.accept(Instant.parse(v).plus(days, ChronoUnit.DAYS).toString());
     }
 
-    public DataSeeder(TeacherRepository teachers, LearnerRepository learners, BookingRepository bookings, PaymentRepository payments, ReviewRepository reviews, NotificationRepository notifications, CategoryRepository categories, ObjectMapper mapper, PasswordEncoder passwordEncoder) {
+    public DataSeeder(TeacherRepository teachers, LearnerRepository learners, BookingRepository bookings, PaymentRepository payments, ReviewRepository reviews, NotificationRepository notifications, CategoryRepository categories, ObjectMapper mapper, PasswordEncoder passwordEncoder, JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
         this.passwordEncoder = passwordEncoder;
         this.teachers = teachers;
         this.learners = learners;

@@ -90,7 +90,7 @@ export default function SettingsPage() {
               <h2 className="h-section">Reset demo data</h2>
               <p className="text-muted-qh mb-0">Restore every teacher, booking, review and payment to the original demo state.</p>
             </div>
-            <button className="btn btn-danger-soft" onClick={async () => { try { await adminService.resetDemo(); clearDraft(); toast('Demo data reset.', 'info'); } catch (e) { toast((e as Error).message, 'error'); } }}>
+            <button className="btn btn-danger-soft" onClick={async () => { toast('Resetting demo data… this can take up to a minute.', 'info'); try { await adminService.resetDemo(); clearDraft(); toast('Demo data reset.', 'info'); } catch (e) { toast((e as Error).message, 'error'); } }}>
               <RotateCcw size={16} /> Reset data
             </button>
           </div>

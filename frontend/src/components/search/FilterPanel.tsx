@@ -19,21 +19,29 @@ export const activeFilterCount = (f: Filters) =>
   (f.subject ? 1 : 0) + (f.category ? 1 : 0) + (f.maxPrice < PRICE_CAP ? 1 : 0) + (f.minRating ? 1 : 0) +
   (f.gender ? 1 : 0) + (f.minExp ? 1 : 0) + (f.day ? 1 : 0) + (f.verifiedOnly ? 1 : 0);
 
+export interface SubjectOption { name: string; count: number }
+export interface SubjectGroup { label: string; subjects: SubjectOption[] }
+
 interface Props {
   filters: Filters;
   onChange: (f: Filters) => void;
-  subjects: string[];
+  /** Every subject, grouped by category, with how many teachers teach it. */
+  subjectGroups: SubjectGroup[];
   categories: Category[];
 }
 
-export default function FilterPanel({ filters, onChange, subjects, categories }: Props) {
+export default function FilterPanel({ filters, onChange, subjectGroups, categories }: Props) {
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) => onChange({ ...filters, [k]: v });
 
   return (
     <div className="filter-panel">
       <div className="field">
         <label className="label" htmlFor="f-category">Category</label>
-        <select id="f-category" className="input" value={filters.category} onChange={(e) => set('category', e.target.value)}>
+        <select id="f-category" className="input" value={filters.category} onChange={(e) => {
+          const category = e.target.value;
+          const keepSubject = !category || categories.find((c) => c.id === category)?.subjects.includes(filters.subject);
+          onChange({ ...filters, category, subject: keepSubject ? filters.subject : '' });
+        }}>
           <option value="">All categories</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.shortName}</option>)}
         </select>
@@ -43,7 +51,13 @@ export default function FilterPanel({ filters, onChange, subjects, categories }:
         <label className="label" htmlFor="f-subject">Subject</label>
         <select id="f-subject" className="input" value={filters.subject} onChange={(e) => set('subject', e.target.value)}>
           <option value="">All subjects</option>
-          {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
+          {subjectGroups.map((g) => (
+            <optgroup key={g.label} label={g.label}>
+              {g.subjects.map((s) => (
+                <option key={s.name} value={s.name}>{s.name}{s.count ? ` (${s.count})` : ' (no teachers yet)'}</option>
+              ))}
+            </optgroup>
+          ))}
         </select>
       </div>
 
